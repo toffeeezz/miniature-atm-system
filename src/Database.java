@@ -16,6 +16,7 @@ public class Database {
         for(BankAccount accounts: bankAccounts)
             if (accNumInput.equalsIgnoreCase(accounts.accID()) && accPinInput.equalsIgnoreCase(accounts.accPIN())) {
                 return true;
+
             }
         return false;
     }
