@@ -1,11 +1,9 @@
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Random;
 
 public class Database {
 
-    private static Map<String, BankAccount> account;
-    private static ArrayList<BankAccount> bankAccounts = new ArrayList<>();
+    private static final ArrayList<BankAccount> bankAccounts = new ArrayList<>();
 
     public static boolean checkValidAcc(String accNum) {
         for(BankAccount accounts: bankAccounts)
@@ -47,6 +45,7 @@ public class Database {
             for (BankAccount accounts : bankAccounts) {
                 if (genID.equalsIgnoreCase(accounts.accID())) {
                     valid = false;
+                    break;
                 }
             }
             if(valid){
