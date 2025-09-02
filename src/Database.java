@@ -58,4 +58,15 @@ public class Database {
     public static void testAccounts(){
         bankAccounts.add(new BankAccount("Gosling, Ryan", "123456", "1234", 2300.3456));
     }
+    public static void withdrawBalance(BankAccount account, double amount){
+        bankAccounts.add(account.withdraw(amount));
+        bankAccounts.remove(account);
+    }
+    public static void depositBalance(BankAccount account, double amount){
+        bankAccounts.add(account.deposit(amount));
+        bankAccounts.remove(account);
+    }
+    public static boolean validateWithdrawal(double balance, double amount){
+        return amount <= balance;
+    }
 }
