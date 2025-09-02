@@ -1,4 +1,5 @@
 import java.util.InputMismatchException;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class Main {
@@ -88,31 +89,105 @@ public class Main {
         String[] nameSplits = bankAccount.accName().split(", ");
         double balance = bankAccount.accBalance();
 
-        Utils.LineBreak();
-        Utils.FormatPrint("Account Name: %s %s", nameSplits[1], nameSplits[0]);
-        Utils.FormatPrint("\nBalance: $%.2f%n", balance);
+        boolean isDeciding = true;
+
+        while(isDeciding) {
+            Utils.LineBreak();
+            Utils.FormatPrint("Account Name: %s %s", nameSplits[1], nameSplits[0]);
+            Utils.FormatPrint("\nBalance: $%.2f%n", balance);
+            Utils.SimplePrint("----------------------");
+            Utils.SimplePrint("1. Withdraw\n2. Deposit\n3. Exit");
+            Utils.LinePrint("> ");
+            String userInput = scan.nextLine();
+            switch (userInput) {
+                case "1":
+                    boolean isWithdrawing = true;
+                    while (isWithdrawing) {
+                        Utils.LineBreak();
+                        Utils.SimplePrint("Please enter an amount.");
+                        Utils.PrintDesign();
+                        try {
+                            scan.useLocale(Locale.US);
+                            double amount = scan.nextDouble();
+                            scan.nextLine();
+                            if(Database.validateWithdrawal(balance, amount)){
+                                Database.withdrawBalance(bankAccount, amount);
+                                Utils.LineBreak();
+                                Utils.SimplePrint("Successfully withdrew $" + amount);
+                            }else{
+                                Utils.LineBreak();
+                                Utils.SimplePrint(">>Insufficient funds<<");
+                            }
+                            isWithdrawing = false;
+                            AccountPage();
+
+                        }catch(InputMismatchException e){
+                            Utils.LineBreak();
+                            Utils.SimplePrint(">>Invalid input. Please try again<<");
+                            scan.nextLine();
+                        }
+
+                    }
+                    isDeciding = false;
+                    break;
+                case "2":
+                    boolean isDepositing = true;
+                    while (isDepositing) {
+                        Utils.LineBreak();
+                        Utils.SimplePrint("Please enter an amount.");
+                        Utils.PrintDesign();
+                        try {
+                            scan.useLocale(Locale.US);
+                            double amount = scan.nextDouble();
+                            scan.nextLine();
+                            Database.depositBalance(bankAccount, amount);
+                            Utils.LineBreak();
+                            Utils.FormatPrint(">>Successfully deposited: $%.2f%n<<", amount);
+                            isDepositing = false;
+                            AccountPage();
+                        } catch (InputMismatchException e) {
+                            Utils.LineBreak();
+                            Utils.SimplePrint(">>Invalid amount. Please use numerical numbers only<<");
+                            scan.nextLine();
+                        }
+                    }
+                    isDeciding = false;
+                    break;
+                case "3":
+                    isDeciding = false;
+                    break;
+                default:
+                    Utils.LineBreak();
+                    Utils.SimplePrint(">>Invalid input please try again<<");
+            }
+        }
+
 
     }
 
     static void SignUpPage() {
         boolean isSigningUp = true;
-        String name = "";
-        String idNumber;
+        String name;
         String pin = "";
 
         while (isSigningUp) {
             boolean isInputtingName = true;
             while (isInputtingName) {
-                Utils.LineBreak();
-                Utils.SimplePrint("Enter your full name (eg. Last Name, First Name).");
-                Utils.PrintDesign();
-                name = scan.nextLine();
-
+                    Utils.LineBreak();
+                    Utils.SimplePrint("Enter your full name (eg. Last Name, First Name).");
+                    Utils.PrintDesign();
+                    name = scan.nextLine();
+                    if(!Utils.CheckNameFormat(name)){
+                      Utils.LineBreak();
+                      Utils.SimplePrint(">>Name format is incorrect. Please follow the instructed format<<");
+                      continue;
+                    }
                 if (Utils.FilterCharacters(name)) {
                     isInputtingName = false;
                 } else {
                     Utils.LineBreak();
                     Utils.SimplePrint(">>Invalid characters. Please try again<<");
+                    continue;
                 }
                 if (!Database.checkExistingName(name)) {
                     boolean isInputtingPin = true;
@@ -121,27 +196,18 @@ public class Main {
                         Utils.LineBreak();
                         Utils.SimplePrint("Enter a (4) digit PIN");
                         Utils.PrintDesign();
-                        int inputPin;
+                        String inputPin;
 
-                        try {
-                            inputPin = scan.nextInt();
-                            scan.nextLine();
-                            if (String.valueOf(inputPin).length() == 4) {
-                                pin = String.valueOf(inputPin);
-                                isInputtingPin = false;
-                            } else {
-                                Utils.LineBreak();
-                                Utils.SimplePrint(">>Incorrect number of digits. Please try again<<");
-                            }
-                        } catch (InputMismatchException e) {
+                        inputPin = scan.nextLine();
+                        if (inputPin.matches("\\d{4}")) {
+                            pin = inputPin;
+                            isInputtingPin = false;
+                        } else{
                             Utils.LineBreak();
-                            Utils.SimplePrint(">>Non-numerical characters are not allowed. Please try again<<");
-                            scan.nextLine();
+                            Utils.SimplePrint(">>Invalid PIN<<");
                         }
                     }
-
                     boolean valid = false;
-
                     while (!valid) {
                         Utils.LineBreak();
                         Utils.FormatPrint("Name: %s\nPIN: %s", name, pin);
@@ -153,21 +219,18 @@ public class Main {
                         switch (input) {
                             case "1":
                                 valid = true;
-                                isSigningUp = false;
                                 break;
                             case "2":
                                 valid = true;
+                                SignUpPage();
                                 break;
                             default:
                                 Utils.LineBreak();
                                 Utils.SimplePrint(">>Invalid input. Please Try again<<");
                         }
                     }
-
                     Database.createAccount(name, pin);
-
                     bankAccount = Database.getBankAccount(name);
-
                     assert bankAccount != null: "Account name is not null!";
 
                     String accName = bankAccount.accName();
@@ -182,7 +245,7 @@ public class Main {
                     Utils.SimplePrint("PIN: " + accPIN);
                     Utils.SimplePrint("Press enter to proceed to the login page.");
                     Utils.PrintDesign();
-                    String input = scan.nextLine();
+                    @SuppressWarnings("unused") String input = scan.nextLine();
                     LoginPage();
 
                 } else {
@@ -190,6 +253,7 @@ public class Main {
                     Utils.SimplePrint(">>An account already exists under that name. Please contact your local bank for support<<");
                 }
             }
+            isSigningUp = false;
         }
     }
 }
